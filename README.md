@@ -16,6 +16,7 @@ Pai has no prerequisites, you can simply `composer require hell-sh/pai` or copy 
 <?php
 require "vendor/autoload.php";
 use hellsh\pai;
+pai::init();
 while(true)
 {
     if(pai::hasLine())

@@ -8,13 +8,13 @@ abstract class pai
 	private static $pipes;
 
 	/**
-	 * Used internally to initialize. You don't have to call this.
+	 * Initializes pai. After this, STDIN is in pai's hands, and there's no way out.
 	 */
 	static function init()
 	{
 		if(self::$init)
 		{
-			echo "You don't need to call pai::init.\n";
+			echo "Pai was already initialized.\n";
 			return;
 		}
 		self::$init = true;
@@ -95,5 +95,3 @@ abstract class pai
 		return trim(fgets(self::$stdin));
 	}
 }
-
-pai::init();
