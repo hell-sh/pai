@@ -1,32 +1,44 @@
-<?php
+<?php /** @noinspection PhpUnused */
 namespace hellsh;
+use BadMethodCallException;
 abstract class pai
 {
-	private static $init = false;
-	private static $stdin;
+	private static $initialized = false;
 	private static $proc;
 	private static $pipes;
 
 	/**
-	 * Initializes pai. After this, STDIN is in pai's hands, and there's no way out.
+	 * Initializes pai's input handling.
+	 * After this, STDIN is in pai's hands, and there's no way out.
+	 *
+	 * @throws BadMethodCallException if pai is already initialized.
 	 */
 	static function init()
 	{
-		if(self::$init)
+		if(self::$initialized)
 		{
-			echo "Pai was already initialized.\n";
-			return;
+			throw new BadMethodCallException("pai was already initialized");
 		}
-		self::$init = true;
+		self::$initialized = true;
 		if(self::isWindows())
 		{
 			self::openProcess();
 		}
 		else
 		{
-			self::$stdin = fopen("php://stdin", "r");
-			stream_set_blocking(self::$stdin, false);
+			stream_set_blocking(STDIN, false);
 		}
+	}
+
+	/**
+	 * Returns true if pai is already initialized.
+	 *
+	 * @since 2.1
+	 * @return bool
+	 */
+	static function isInitialized()
+	{
+		return self::$initialized;
 	}
 
 	/**
@@ -41,12 +53,8 @@ abstract class pai
 
 	private static function openProcess()
 	{
-		self::$proc = proc_open("php \"".__DIR__."\\stdin.php\"", [
-			0 => [
-				"file",
-				"php://stdin",
-				"r"
-			],
+		self::$proc = proc_open("php \"".__DIR__."\\pai_input.php\"", [
+			0 => STDIN,
 			1 => [
 				"pipe",
 				"w"
@@ -65,33 +73,72 @@ abstract class pai
 	/**
 	 * Returns true if the user has submitted a line of text.
 	 *
+	 * @throws BadMethodCallException if pai is not initialized
+	 * @see pai::init()
 	 * @return boolean
 	 */
 	static function hasLine()
 	{
+		if(!self::$initialized)
+		{
+			throw new BadMethodCallException("pai is not initialized");
+		}
 		if(self::isWindows())
 		{
 			return !proc_get_status(self::$proc)["running"];
 		}
-		$read = [self::$stdin];
-		$null = [];
-		return stream_select($read, $null, $null, 0) === 1;
+		else
+		{
+			$read = [STDIN];
+			$null = [];
+			return stream_select($read, $null, $null, 0) === 1;
+		}
 	}
 
 	/**
-	 * Returns the line of text the user has submitted.
-	 * Please make sure hasLine() == true before calling this to avoid issues.
+	 * Returns the line of text the user has submitted or null if they haven't.
 	 *
-	 * @return string
+	 * @throws BadMethodCallException if pai is not initialized
+	 * @see pai::init()
+	 * @return string|null
 	 */
 	static function getLine()
 	{
+		if(!self::hasLine())
+		{
+			return null;
+		}
 		if(self::isWindows())
 		{
-			$ret = trim(stream_get_contents(self::$pipes[1]));
+			if(!self::hasLine())
+			{
+				return null;
+			}
+			$res = trim(stream_get_contents(self::$pipes[1]));
 			self::openProcess();
-			return $ret;
+			return $res;
 		}
-		return trim(fgets(self::$stdin));
+		return trim(fgets(STDIN));
+	}
+
+	/**
+	 * Waits until the user has submitted a line and then returns it.
+	 *
+	 * @since 2.1
+	 * @throws BadMethodCallException if pai is not initialized
+	 * @see pai::init()
+	 * @return string
+	 */
+	static function awaitLine()
+	{
+		if(!self::$initialized)
+		{
+			throw new BadMethodCallException("pai is not initialized");
+		}
+		while(!pai::hasLine())
+		{
+			usleep(100000);
+		}
+		return pai::getLine();
 	}
 }

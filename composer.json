@@ -1,10 +1,7 @@
 {
 	"name": "hell-sh/pai",
-	"description": "The elegant solution to asynchronous input in PHP.",
+	"description": "The easy input wrapper for PHP.",
 	"keywords": [
-		"async",
-		"asynchronous",
-		"asynchronous-input",
 		"stdin",
 		"workaround"
 	],
@@ -12,11 +9,11 @@
 	"type": "library",
 	"license": "MIT",
 	"autoload": {
-		"files": [
-			"src/pai.php"
-		]
+		"psr-4": {
+			"hellsh\\": "src/"
+		}
 	},
 	"require": {
-		"php": "^5.4 | ^7.0"
+		"php": ">=5.4"
 	}
 }
