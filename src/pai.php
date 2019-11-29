@@ -1,6 +1,7 @@
 <?php /** @noinspection PhpUnused */
 namespace hellsh;
 use BadMethodCallException;
+use RuntimeException;
 abstract class pai
 {
 	private static $initialized = false;
@@ -53,7 +54,7 @@ abstract class pai
 
 	private static function openProcess()
 	{
-		self::$proc = proc_open("php \"".__DIR__."\\pai_input.php\"", [
+		self::$proc = proc_open("SET /P pai_input= & SET pai_input", [
 			0 => STDIN,
 			1 => [
 				"pipe",
@@ -66,7 +67,7 @@ abstract class pai
 		], self::$pipes);
 		if(!is_resource(self::$proc))
 		{
-			die("[pai] Failed to start PHP sub-process. Has PHP been added to PATH?\n");
+			throw new RuntimeException("Failed to start Windows input process");
 		}
 	}
 
@@ -114,7 +115,7 @@ abstract class pai
 			{
 				return null;
 			}
-			$res = trim(stream_get_contents(self::$pipes[1]));
+			$res = trim(substr(stream_get_contents(self::$pipes[1]), 10));
 			self::openProcess();
 			return $res;
 		}
