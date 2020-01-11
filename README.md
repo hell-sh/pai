@@ -2,6 +2,8 @@
 
 The easy input wrapper for PHP.
 
+> **Abandoned:** Use the `stdin` class of [Asyncore](https://github.com/hell-sh/Asyncore), instead.
+
 ## Why?
 
 - Asynchronous input on Windows is only possible using workarounds. [This is a known issue but no one is interested in solving it.](https://bugs.php.net/bug.php?id=34972)
